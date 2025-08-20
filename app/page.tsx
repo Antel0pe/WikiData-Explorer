@@ -38,23 +38,29 @@ export default function Home() {
 
   useEffect(() => {
     if (!bounds) return;
-    const { lonW, latS, lonE, latN } = bounds;
-    queryWikidata(lonW, latS, lonE, latN, startYear, endYear)
-      .then((rows) => {
-        const parsed = rows.reduce<ArticlePoint[]>((acc, r) => {
-          const pair = parseWktPoint(r.coord);
-          if (!pair) return acc;
-          const [lng, lat] = pair;
-          const color = hashColor(r.id);
-          acc.push({ id: r.id, lat, lng, label: r.label, when: r.when, article: r.article, color });
-          return acc;
-        }, []);
-        setPoints(parsed);
-        console.log("Wikidata results", { rowsCount: rows.length, rows, points: parsed.length });
-      })
-      .catch((err) => {
-        console.error("Wikidata query failed", err);
-      });
+    const timeoutId = window.setTimeout(() => {
+      const { lonW, latS, lonE, latN } = bounds;
+      queryWikidata(lonW, latS, lonE, latN, startYear, endYear)
+        .then((rows) => {
+          const parsed = rows.reduce<ArticlePoint[]>((acc, r) => {
+            const pair = parseWktPoint(r.coord);
+            if (!pair) return acc;
+            const [lng, lat] = pair;
+            const color = hashColor(r.id);
+            acc.push({ id: r.id, lat, lng, label: r.label, when: r.when, article: r.article, color });
+            return acc;
+          }, []);
+          setPoints(parsed);
+          console.log("Wikidata results", { rowsCount: rows.length, rows, points: parsed.length });
+        })
+        .catch((err) => {
+          console.error("Wikidata query failed", err);
+        });
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [bounds, startYear, endYear]);
 
   function parseWktPoint(wkt: string): [number, number] | null {
