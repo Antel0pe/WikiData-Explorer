@@ -21,4 +21,14 @@ export type WikidataResultRow = {
   article?: string;
 };
 
+export type ArticlePoint = {
+  id: string;
+  lat: number;
+  lng: number;
+  label?: string;
+  when?: string;
+  article?: string;
+  color: string;
+};
+
 

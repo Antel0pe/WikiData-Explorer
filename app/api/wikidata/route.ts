@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         }
         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
       }
-      LIMIT 200
+      LIMIT 100
     `;
 
     const wdqs = await fetch("https://query.wikidata.org/sparql", {
