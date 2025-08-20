@@ -92,14 +92,64 @@ export default function Map({ onBoundsChange, points = [] }: MapProps) {
         });
 
         const popupHtml = `
-          <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: #e5e5e5; background: #111827; padding: 10px; border-radius: 8px; max-width: 260px;">
-            <div style="font-weight: 600; font-size: 14px; margin-bottom: 6px;">${p.label ?? "Untitled"}</div>
-            ${p.when ? `<div style=\"font-size:12px;color:#a3a3a3;margin-bottom:8px;\">${new Date(p.when).toDateString()}\</div>` : ""}
-            ${p.article ? `<a href=\"${p.article}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display:inline-block;background:#1f2937;color:white;padding:6px 10px;border-radius:6px;text-decoration:none;\">Open Wikipedia</a>` : ""}
+          <div class="map-popup-body">
+            <div class="map-popup-title">${p.label ?? "Untitled"}</div>
+            ${p.when ? `<div class=\"map-popup-date\">${new Date(p.when).toDateString()}\</div>` : ""}
+            ${p.article ? `<a class=\"map-popup-link\" href=\"${p.article}\" target=\"_blank\" rel=\"noopener noreferrer\">Open Wikipedia</a>` : ""}
           </div>
         `;
 
-        circle.bindTooltip(popupHtml, { direction: "top", sticky: true, opacity: 1, className: "" });
+        const popup = L.popup({
+          className: "map-popup",
+          closeButton: false,
+          autoClose: false,
+          closeOnClick: false,
+          maxWidth: 320,
+        }).setContent(popupHtml);
+
+        circle.bindPopup(popup);
+
+        let closeTimeout: number | null = null;
+
+        const scheduleClose = () => {
+          if (closeTimeout) window.clearTimeout(closeTimeout);
+          closeTimeout = window.setTimeout(() => {
+            if (circle.isPopupOpen()) circle.closePopup();
+          }, 200);
+        };
+
+        const cancelClose = () => {
+          if (closeTimeout) {
+            window.clearTimeout(closeTimeout);
+            closeTimeout = null;
+          }
+        };
+
+        circle.on("mouseover", () => {
+          cancelClose();
+          circle.openPopup();
+        });
+        circle.on("mouseout", () => {
+          scheduleClose();
+        });
+        circle.on("click", () => {
+          cancelClose();
+          circle.openPopup();
+        });
+
+        circle.on("popupopen", () => {
+          const el = circle.getPopup()?.getElement();
+          if (!el) return;
+          el.addEventListener("mouseenter", cancelClose);
+          el.addEventListener("mouseleave", scheduleClose);
+        });
+        circle.on("popupclose", () => {
+          const el = circle.getPopup()?.getElement();
+          if (!el) return;
+          el.removeEventListener("mouseenter", cancelClose);
+          el.removeEventListener("mouseleave", scheduleClose);
+        });
+
         circle.addTo(markersLayerRef.current!);
       });
     };
