@@ -6,13 +6,22 @@ type Params = {
   latS: number;
   lonE: number;
   latN: number;
-  yearStart: number;
-  yearEnd: number;
+  yearStart: number; // CE years as positive, BCE as negative
+  yearEnd: number;   // CE years as positive, BCE as negative
 };
 
 export async function POST(req: Request) {
   try {
     const { lonW, latS, lonE, latN, yearStart, yearEnd } = (await req.json()) as Params;
+
+    const toXsdDate = (year: number) => {
+      // BCE represented as negative signed, left-padded to 6 digits for WDQS (-066000000 for 66mya)
+      if (year < 0) {
+        const abs = Math.abs(year).toString().padStart(9, "0");
+        return `-${abs}-01-01T00:00:00Z`;
+      }
+      return `${String(year).padStart(4, "0")}-01-01T00:00:00Z`;
+    };
 
     const sparql = `
       PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -30,8 +39,8 @@ export async function POST(req: Request) {
         }
         ?item wdt:P585 ?when .
         FILTER(
-          ?when >= "${yearStart}-01-01T00:00:00Z"^^xsd:dateTime &&
-          ?when <  "${yearEnd}-01-01T00:00:00Z"^^xsd:dateTime
+          ?when >= "${toXsdDate(yearStart)}"^^xsd:dateTime &&
+          ?when <  "${toXsdDate(yearEnd)}"^^xsd:dateTime
         )
 
         OPTIONAL {

@@ -61,3 +61,8 @@ body {
 .map-popup-link:hover {
   background: #374151;
 }
+
+/* rc-slider dark theme tweaks */
+.dark-rc-slider .rc-slider-mark-text {
+  color: #9ca3af;
+}
