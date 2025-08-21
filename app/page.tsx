@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-// import Sidebar from "./components/Sidebar";
-import Timeline from "./components/Timeline";
+import Sidebar from "./components/Sidebar";
+// import Timeline from "./components/Timeline";
 import type { Bounds, WikidataResultRow, ArticlePoint } from "./types";
 
 const Map = dynamic(() => import("./components/map"), { ssr: false });
@@ -84,12 +84,16 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col">
-      <div className="h-[80vh] w-full">
-        <Map onBoundsChange={setBounds} points={points} />
+    <div className="min-h-screen w-full flex">
+      <div className="basis-[20%] h-screen overflow-auto">
+        <Sidebar
+          startYear={startYear}
+          endYear={endYear}
+          onChange={handleSidebarChange}
+        />
       </div>
-      <div className="h-[20vh] w-full border-t border-neutral-800">
-        <Timeline startYear={startYear} endYear={endYear} onChange={handleSidebarChange} />
+      <div className="basis-[80%] h-screen">
+        <Map onBoundsChange={setBounds} points={points} />
       </div>
     </div>
   );
